@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Github, Linkedin, Terminal, Edit3, Save, X, UploadCloud, MapPin, Mail, Briefcase, ChevronRight } from 'lucide-react';
 import { useGlobalState } from '../context/GlobalContext';
 import { Toast, useToast } from '../components/Projects';
 import api from '../services/api';
 
 const Dashboard: React.FC = () => {
-  const { currentUser, setCurrentUser } = useGlobalState();
+  const { currentUser, setCurrentUser, isLoggedIn } = useGlobalState();
+  const navigate = useNavigate();
   const { toast, showToast, hideToast } = useToast();
   
   const [isEditing, setIsEditing] = useState(false);
@@ -17,6 +19,12 @@ const Dashboard: React.FC = () => {
     linkedin_url: '',
     leetcode_url: ''
   });
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/signin');
+    }
+  }, [isLoggedIn, navigate]);
 
   useEffect(() => {
     if (currentUser) {
