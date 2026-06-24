@@ -3,21 +3,42 @@ import { useGlobalState } from '../../context/GlobalContext';
 import { ShieldAlert, Users, Trash2, ShieldCheck, Mail, Calendar, Search, UserPlus } from 'lucide-react';
 
 const ManageAccess: React.FC = () => {
-    const { admins, addAdmin, deleteAdmin } = useGlobalState();
+    const { admins, clubMembers, deleteAdmin } = useGlobalState();
     const [searchQuery, setSearchQuery] = useState('');
     const [newAdmin, setNewAdmin] = useState({ name: '', email: '', role: 'Moderator' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleAddAdmin = (e: React.FormEvent) => {
+    const handleAddAdmin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newAdmin.name || !newAdmin.email) return;
-        addAdmin({
-            id: Date.now().toString(),
-            name: newAdmin.name,
-            email: newAdmin.email,
-            role: newAdmin.role as any,
-            addedAt: new Date().toISOString().split('T')[0]
-        });
-        setNewAdmin({ name: '', email: '', role: 'Moderator' });
+        if (!newAdmin.email) return;
+        
+        // Find user by email in clubMembers (all users)
+        const targetUser = clubMembers.find(m => m.email.toLowerCase() === newAdmin.email.toLowerCase());
+        if (!targetUser) {
+            alert("No user found with that email. They must sign up first!");
+            return;
+        }
+
+        const roleMap: Record<string, string> = {
+            'Moderator': 'CONTENT_ADMIN',
+            'Content Admin': 'CONTENT_ADMIN',
+            'Super Admin': 'SUPER_ADMIN'
+        };
+
+        setIsSubmitting(true);
+        try {
+            const api = (await import('../../services/api')).default;
+            const res = await api.patch(`/admin/users/${targetUser.id}/role`, { role: roleMap[newAdmin.role] });
+            if (res.data.success) {
+                alert("Permissions granted successfully! Refresh to see changes immediately.");
+                setNewAdmin({ name: '', email: '', role: 'Moderator' });
+            }
+        } catch (err) {
+            console.error("Failed to upgrade user:", err);
+            alert("Failed to grant permissions.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const filteredAdmins = admins.filter(admin =>

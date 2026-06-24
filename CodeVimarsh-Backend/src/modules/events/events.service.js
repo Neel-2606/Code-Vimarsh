@@ -154,3 +154,16 @@ export const deleteEventSpeaker = async (speakerId) => {
 
   return speaker;
 };
+
+/**
+ * Retrieves all event registrations across all events.
+ */
+export const getAllRegistrations = async () => {
+  const registrations = await prisma.eventRegistration.findMany({
+    orderBy: { registered_at: "desc" },
+    include: {
+      event: { select: { title: true } },
+    },
+  });
+  return registrations;
+};

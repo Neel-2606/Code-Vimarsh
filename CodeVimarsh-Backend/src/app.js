@@ -16,6 +16,12 @@ import projectRoutes from "./modules/projects/project.routes.js";
 import eventsRoutes from "./modules/events/events.routes.js";
 import contactRoutes from "./modules/contact/contact.routes.js";
 
+import teamRoutes from "./modules/team/team.routes.js";
+import alumniRoutes from "./modules/alumni/alumni.routes.js";
+import blogsRoutes from "./modules/blogs/blogs.routes.js";
+import achievementsRoutes from "./modules/achievements/achievements.routes.js";
+import resourcesRoutes from "./modules/resources/resources.routes.js";
+
 const app = express();
 
 // ── Security & Parsing ────────────────────────────────────────────────────────
@@ -38,6 +44,12 @@ app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/projects", projectRoutes);
 app.use("/api/v1/events", eventsRoutes);
 app.use("/api/v1/contact", contactRoutes);
+
+app.use("/api/v1/team", teamRoutes);
+app.use("/api/v1/alumni", alumniRoutes);
+app.use("/api/v1/blogs", blogsRoutes);
+app.use("/api/v1/achievements", achievementsRoutes);
+app.use("/api/v1/resources", resourcesRoutes);
 
 // ── Health Check ──────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {

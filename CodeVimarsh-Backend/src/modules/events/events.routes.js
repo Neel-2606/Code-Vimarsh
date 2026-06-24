@@ -46,6 +46,17 @@ router.get("/", eventsController.getAllEvents);
 
 /**
  * @swagger
+ * /events/registrations:
+ *   get:
+ *     summary: Get all event registrations
+ *     tags: [Events]
+ *     security:
+ *       - BearerAuth: []
+ */
+router.get("/registrations", authenticate, requireSuperAdmin, eventsController.getAllRegistrations);
+
+/**
+ * @swagger
  * /events/{id}:
  *   get:
  *     summary: Get an event by ID

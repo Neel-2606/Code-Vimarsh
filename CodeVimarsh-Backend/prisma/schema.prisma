@@ -282,3 +282,113 @@ model ContactMessage {
 
   @@map("contact_messages")
 }
+
+// ─────────────────────────────────────────────
+//  Team Members
+// ─────────────────────────────────────────────
+
+model TeamMember {
+  id       String  @id @default(cuid())
+  name     String
+  role     String
+  section  String
+  image    String?
+  email    String  @unique
+  github   String?
+  linkedin String?
+
+  created_at DateTime @default(now())
+
+  @@map("team_members")
+}
+
+// ─────────────────────────────────────────────
+//  Alumni
+// ─────────────────────────────────────────────
+
+model Alum {
+  id           String   @id @default(cuid())
+  name         String
+  initials     String?
+  photo        String?
+  role         String
+  company      String
+  batch        String
+  location     String
+  domain       String
+  bio          String?  @db.Text
+  advice       String?  @db.Text
+  tech         String[]
+  linkedin     String?
+  github       String?
+  website      String?
+  achievements String[]
+  roadmap      Json?
+
+  created_at DateTime @default(now())
+
+  @@map("alumni")
+}
+
+// ─────────────────────────────────────────────
+//  Blogs
+// ─────────────────────────────────────────────
+
+model Blog {
+  id               String   @id @default(cuid())
+  title            String
+  slug             String   @unique
+  topic            String
+  short_description String? @db.Text
+  content          String   @db.Text
+  featured_image   String?
+  images           String[]
+  author_name      String
+  author_role      String
+  tags             String[]
+  status           String   @default("Draft")
+  
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  @@map("blogs")
+}
+
+// ─────────────────────────────────────────────
+//  Achievements
+// ─────────────────────────────────────────────
+
+model Achievement {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  date        String
+  tag         String?
+  icon        String?
+  category    String
+  order       Int      @default(1)
+
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("achievements")
+}
+
+// ─────────────────────────────────────────────
+//  Resources
+// ─────────────────────────────────────────────
+
+model Resource {
+  id           String   @id @default(cuid())
+  title        String
+  category     String   
+  url          String
+  thumbnail    String?
+  tags         String[]
+  best_for     String?
+  content_type String?
+
+  created_at   DateTime @default(now())
+
+  @@map("resources")
+}

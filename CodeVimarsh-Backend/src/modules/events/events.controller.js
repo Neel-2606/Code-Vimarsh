@@ -105,3 +105,12 @@ export const deleteEventSpeaker = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getAllRegistrations = async (req, res, next) => {
+  try {
+    const registrations = await eventsService.getAllRegistrations();
+    res.status(200).json({ success: true, registrations });
+  } catch (err) {
+    next(err);
+  }
+};

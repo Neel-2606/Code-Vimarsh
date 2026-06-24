@@ -86,14 +86,11 @@ export const GlobalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [managedBlogs, setManagedBlogs] = useState<ManagedBlog[]>(MOCK_MANAGED_BLOGS);
   const [achievements, setAchievements] = useState<AchievementType[]>(MOCK_ACHIEVEMENTS);
   const [managedAchievements, setManagedAchievements] = useState<ManagedAchievement[]>(MOCK_MANAGED_ACHIEVEMENTS);
-  const [admins, setAdmins] = useState<AdminUser[]>([
-    { id: '1', name: 'Aarav Patel', email: 'aarav@vimarsh.dev', role: 'Super Admin', addedAt: '2023-08-10' },
-    { id: '2', name: 'System Core', email: 'root@vimarsh.dev', role: 'Super Admin', addedAt: '2023-01-01' }
-  ]);
+  const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [videoResources, setVideoResources] = useState<VideoResource[]>(MOCK_VIDEOS);
   const [linkResources, setLinkResources] = useState<LinkResource[]>(MOCK_LINKS);
-  const [participants, setParticipants] = useState<Participant[]>(MOCK_PARTICIPANTS);
-  const [clubMembers, setClubMembers] = useState<ClubMember[]>(MOCK_MEMBERS);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [clubMembers, setClubMembers] = useState<ClubMember[]>([]);
   const [alumni, setAlumni] = useState<Alum[]>(MOCK_ALUMNI);
 
   useEffect(() => {
@@ -141,46 +138,135 @@ export const GlobalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         }
       })
       .catch(err => console.error('Failed to fetch projects:', err));
-  }, []);
+
+    api.get('/team').then(res => {
+      if (res.data.success) setTeam(res.data.data);
+    }).catch(err => console.error('Failed to fetch team:', err));
+
+    api.get('/alumni').then(res => {
+      if (res.data.success) setAlumni(res.data.data);
+    }).catch(err => console.error('Failed to fetch alumni:', err));
+
+    api.get('/blogs').then(res => {
+      if (res.data.success) setManagedBlogs(res.data.data);
+    }).catch(err => console.error('Failed to fetch blogs:', err));
+
+    api.get('/achievements').then(res => {
+      if (res.data.success) setManagedAchievements(res.data.data);
+    }).catch(err => console.error('Failed to fetch achievements:', err));
+
+    api.get('/resources').then(res => {
+      if (res.data.success) {
+        const data = res.data.data;
+        setVideoResources(data.filter((r: any) => r.category === 'youtube' || r.url.includes('youtube')));
+        setLinkResources(data.filter((r: any) => r.category !== 'youtube' && !r.url.includes('youtube')));
+      }
+    }).catch(err => console.error('Failed to fetch resources:', err));
+
+    if (isLoggedIn) {
+      api.get('/admin/users').then(res => {
+        if (res.data.success) {
+          const users = res.data.users;
+          setClubMembers(users.map((u: any) => ({
+            id: u.id, name: u.name, email: u.email, role: u.role === 'USER' ? 'Member' : u.role, joinedAt: new Date(u.created_at).toISOString().split('T')[0]
+          })));
+          setAdmins(users.filter((u: any) => u.role === 'CONTENT_ADMIN' || u.role === 'SUPER_ADMIN').map((u: any) => ({
+            id: u.id, name: u.name, email: u.email, role: u.role === 'CONTENT_ADMIN' ? 'Content Admin' : 'Super Admin', addedAt: new Date(u.created_at).toISOString().split('T')[0]
+          })));
+        }
+      }).catch(err => console.error('Failed to fetch users:', err));
+
+      api.get('/events/registrations').then(res => {
+        if (res.data.success) {
+          setParticipants(res.data.registrations.map((r: any) => ({
+            id: r.id, name: r.full_name, email: r.email, eventId: r.event_id, eventTitle: r.event?.title || 'Unknown Event', registeredAt: new Date(r.registered_at).toISOString().split('T')[0]
+          })));
+        }
+      }).catch(err => console.error('Failed to fetch registrations:', err));
+    }
+  }, [isLoggedIn]);
 
   const addEvent = (event: EventType) => setEvents(prev => [event, ...prev]);
   const addProject = (project: ProjectType) => setProjects(prev => [project, ...prev]);
   const deleteProject = (id: string) => setProjects(prev => prev.filter(p => p.id !== id));
   const addAdmin = (admin: AdminUser) => setAdmins(prev => [admin, ...prev]);
-  const deleteAdmin = (id: string) => setAdmins(prev => prev.filter(a => a.id !== id));
+  const deleteAdmin = (id: string) => {
+    api.patch(`/admin/users/${id}/role`, { role: 'USER' })
+      .then(res => {
+        if (res.data.success) {
+          setAdmins(prev => prev.filter(a => a.id !== id));
+        }
+      }).catch(console.error);
+  };
 
-  const addManagedBlog = (blog: ManagedBlog) => setManagedBlogs(prev => [blog, ...prev]);
-  const updateManagedBlog = (blog: ManagedBlog) => setManagedBlogs(prev => prev.map(b => b.id === blog.id ? blog : b));
-  const deleteManagedBlog = (id: string) => setManagedBlogs(prev => prev.filter(b => b.id !== id));
+  const addManagedBlog = (blog: ManagedBlog) => {
+    api.post('/blogs', blog).then(res => setManagedBlogs(prev => [res.data.data, ...prev])).catch(console.error);
+  };
+  const updateManagedBlog = (blog: ManagedBlog) => {
+    api.put(`/blogs/${blog.id}`, blog).then(res => setManagedBlogs(prev => prev.map(b => b.id === blog.id ? res.data.data : b))).catch(console.error);
+  };
+  const deleteManagedBlog = (id: string) => {
+    api.delete(`/blogs/${id}`).then(() => setManagedBlogs(prev => prev.filter(b => b.id !== id))).catch(console.error);
+  };
   const toggleBlogStatus = (id: string) => setManagedBlogs(prev => prev.map(b =>
     b.id === id ? { ...b, status: b.status === 'Published' ? 'Draft' : 'Published', updatedAt: new Date().toISOString() } : b
   ));
 
-  const addManagedAchievement = (a: ManagedAchievement) => setManagedAchievements(prev => [...prev, a].sort((x, y) => x.order - y.order));
-  const updateManagedAchievement = (a: ManagedAchievement) => setManagedAchievements(prev => prev.map(x => x.id === a.id ? a : x).sort((x, y) => x.order - y.order));
-  const deleteManagedAchievement = (id: string) => setManagedAchievements(prev => prev.filter(x => x.id !== id));
+  const addManagedAchievement = (a: ManagedAchievement) => {
+    api.post('/achievements', a).then(res => setManagedAchievements(prev => [...prev, res.data.data].sort((x, y) => x.order - y.order))).catch(console.error);
+  };
+  const updateManagedAchievement = (a: ManagedAchievement) => {
+    api.put(`/achievements/${a.id}`, a).then(res => setManagedAchievements(prev => prev.map(x => x.id === a.id ? res.data.data : x).sort((x, y) => x.order - y.order))).catch(console.error);
+  };
+  const deleteManagedAchievement = (id: string) => {
+    api.delete(`/achievements/${id}`).then(() => setManagedAchievements(prev => prev.filter(x => x.id !== id))).catch(console.error);
+  };
 
-  const addVideoResource = (video: VideoResource) => setVideoResources(prev => [video, ...prev]);
-  const updateVideoResource = (video: VideoResource) => setVideoResources(prev => prev.map(v => v.id === video.id ? video : v));
-  const deleteVideoResource = (id: string) => setVideoResources(prev => prev.filter(v => v.id !== id));
+  const addVideoResource = (video: VideoResource) => {
+    api.post('/resources', { ...video, category: 'youtube' }).then(res => setVideoResources(prev => [res.data.data, ...prev])).catch(console.error);
+  };
+  const updateVideoResource = (video: VideoResource) => {
+    api.put(`/resources/${video.id}`, { ...video, category: 'youtube' }).then(res => setVideoResources(prev => prev.map(v => v.id === video.id ? res.data.data : v))).catch(console.error);
+  };
+  const deleteVideoResource = (id: string) => {
+    api.delete(`/resources/${id}`).then(() => setVideoResources(prev => prev.filter(v => v.id !== id))).catch(console.error);
+  };
 
-  const addLinkResource = (link: LinkResource) => setLinkResources(prev => [link, ...prev]);
-  const updateLinkResource = (link: LinkResource) => setLinkResources(prev => prev.map(l => l.id === link.id ? link : l));
-  const deleteLinkResource = (id: string) => setLinkResources(prev => prev.filter(l => l.id !== id));
+  const addLinkResource = (link: LinkResource) => {
+    api.post('/resources', { ...link, category: 'website' }).then(res => setLinkResources(prev => [res.data.data, ...prev])).catch(console.error);
+  };
+  const updateLinkResource = (link: LinkResource) => {
+    api.put(`/resources/${link.id}`, { ...link, category: 'website' }).then(res => setLinkResources(prev => prev.map(l => l.id === link.id ? res.data.data : l))).catch(console.error);
+  };
+  const deleteLinkResource = (id: string) => {
+    api.delete(`/resources/${id}`).then(() => setLinkResources(prev => prev.filter(l => l.id !== id))).catch(console.error);
+  };
 
   const addParticipant = (p: Participant) => setParticipants(prev => [p, ...prev]);
   const removeParticipant = (id: string) => setParticipants(prev => prev.filter(p => p.id !== id));
 
-  const addTeamMember = (member: TeamMember) => setTeam(prev => [...prev, member]);
-  const updateTeamMember = (member: TeamMember) => setTeam(prev => prev.map(m => m.id === member.id ? member : m));
-  const deleteTeamMember = (id: string) => setTeam(prev => prev.filter(m => m.id !== id));
+  const addTeamMember = (member: TeamMember) => {
+    api.post('/team', member).then(res => setTeam(prev => [...prev, res.data.data])).catch(console.error);
+  };
+  const updateTeamMember = (member: TeamMember) => {
+    api.put(`/team/${member.id}`, member).then(res => setTeam(prev => prev.map(m => m.id === member.id ? res.data.data : m))).catch(console.error);
+  };
+  const deleteTeamMember = (id: string) => {
+    api.delete(`/team/${id}`).then(() => setTeam(prev => prev.filter(m => m.id !== id))).catch(console.error);
+  };
 
   const addClubMember = (m: ClubMember) => setClubMembers(prev => [m, ...prev]);
   const removeClubMember = (id: string) => setClubMembers(prev => prev.filter(m => m.id !== id));
 
-  const addAlum = (alum: Alum) => setAlumni(prev => [alum, ...prev]);
-  const updateAlum = (alum: Alum) => setAlumni(prev => prev.map(a => a.id === alum.id ? alum : a));
-  const deleteAlum = (id: string) => setAlumni(prev => prev.filter(a => a.id !== id));
+  const addAlum = (alum: Alum) => {
+    api.post('/alumni', alum).then(res => setAlumni(prev => [res.data.data, ...prev])).catch(console.error);
+  };
+  const updateAlum = (alum: Alum) => {
+    api.put(`/alumni/${alum.id}`, alum).then(res => setAlumni(prev => prev.map(a => a.id === alum.id ? res.data.data : a))).catch(console.error);
+  };
+  const deleteAlum = (id: string) => {
+    api.delete(`/alumni/${id}`).then(() => setAlumni(prev => prev.filter(a => a.id !== id))).catch(console.error);
+  };
 
   return (
     <GlobalContext.Provider value={{
