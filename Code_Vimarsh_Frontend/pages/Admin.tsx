@@ -3,7 +3,7 @@ import { useGlobalState } from '../context/GlobalContext';
 import {
   LayoutDashboard, Calendar, FolderHeart, ShieldAlert, Users,
   ArrowLeft, BookOpen, Award, Newspaper, Trophy, Megaphone, Mail,
-  Settings, LogOut, ChevronRight, Activity, Bell, Search, User, GraduationCap
+  Settings, LogOut, ChevronRight, Activity, Bell, Search, User, GraduationCap, Menu, X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -24,7 +24,7 @@ import ManageContact from '../components/admin/ManageContact';
 const Admin: React.FC = () => {
   // Component is now fully modular; state is managed within sub-components via useGlobalState()
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'projects' | 'admins' | 'resources' | 'email' | 'certificates' | 'blogs' | 'achievements' | 'alumni' | 'team' | 'contact'>('overview');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const { currentUser } = useGlobalState();
 
@@ -58,9 +58,17 @@ const Admin: React.FC = () => {
             <span className="text-xs font-black uppercase tracking-[0.2em]">Return to Nexus</span>
           </Link>
 
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20 shadow-xl shadow-primary/5">
-              <Settings className="text-primary animate-spin-slow" size={24} />
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20 shadow-xl shadow-primary/5">
+                <Settings className="text-primary animate-spin-slow" size={24} />
+              </div>
+              <button 
+                className="lg:hidden p-2 bg-surfaceLight/20 hover:bg-surfaceLight/40 rounded-xl text-textMuted hover:text-white transition-colors"
+                onClick={() => setIsSidebarOpen(false)}
+              >
+                <X size={24} />
+              </button>
             </div>
             <div>
               <h1 className="font-display font-black text-2xl text-white tracking-tighter">Control <span className="text-primary italic">Panel</span></h1>
@@ -74,7 +82,10 @@ const Admin: React.FC = () => {
           {menuItems.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => {
+                setActiveTab(tab.id as any);
+                setIsSidebarOpen(false);
+              }}
               className={`group w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-sm font-bold transition-all duration-300 relative overflow-hidden ${activeTab === tab.id
                 ? 'bg-primary/10 text-primary border border-primary/20 shadow-lg shadow-primary/5'
                 : 'text-textMuted hover:bg-surfaceLight/40 hover:text-white'
@@ -113,13 +124,27 @@ const Admin: React.FC = () => {
         </div>
       </aside>
 
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 bg-bgDark relative">
         {/* Top Navigation Bar */}
-        <header className="h-20 lg:h-24 bg-surface/50 backdrop-blur-xl border-b border-surfaceLight/30 flex items-center justify-between px-8 lg:px-12 sticky top-0 z-40 outline-none">
-          <div className="flex items-center gap-6">
+        <header className="h-20 lg:h-24 bg-surface/50 backdrop-blur-xl border-b border-surfaceLight/30 flex items-center justify-between px-4 lg:px-12 sticky top-0 z-30 outline-none">
+          <div className="flex items-center gap-4 lg:gap-6">
+            <button 
+              className="lg:hidden p-2.5 bg-surfaceLight/40 hover:bg-surfaceLight/60 rounded-xl text-textMuted hover:text-white transition-all"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu size={22} />
+            </button>
             <div className="flex items-center gap-4 text-sm font-bold text-textMuted">
-              <Activity size={16} className="text-green-500" />
+              <Activity size={16} className="text-green-500 hidden sm:block" />
               <span className="hidden sm:inline border-r border-surfaceLight pr-4">Network Latency: <span className="text-primary">14ms</span></span>
               <span className="hidden sm:inline">Secure Node: <span className="text-blue-400">Node-04</span></span>
             </div>
