@@ -52,10 +52,14 @@ app.use("/api/v1/achievements", achievementsRoutes);
 app.use("/api/v1/resources", resourcesRoutes);
 
 // ── Health Check ──────────────────────────────────────────────────────────────
+app.get("/", (_req, res) => {
+  res.status(200).json({ success: true, message: "Code Vimarsh API is running successfully on Vercel 🚀" });
+});
+
 app.get("/health", (_req, res) => {
   res
     .status(200)
-    .json({ success: true, message: "Code Vimarsh API is running 🚀" });
+    .json({ success: true, message: "Code Vimarsh API is healthy 🚀" });
 });
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
