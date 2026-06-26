@@ -15,9 +15,10 @@ export const validate = (schema) => (req, res, next) => {
         field: e.path.join("."),
         message: e.message,
       }));
+      const errorMessage = errors.map((e) => `${e.field}: ${e.message}`).join(" | ");
       return res
         .status(400)
-        .json({ success: false, message: "Validation failed.", errors });
+        .json({ success: false, message: `Validation failed - ${errorMessage}`, errors });
     }
     next(err);
   }

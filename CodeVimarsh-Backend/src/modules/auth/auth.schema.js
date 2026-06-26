@@ -3,8 +3,7 @@ import { z } from "zod";
 export const registerSchema = z.object({
   prn: z
     .string({ required_error: "PRN is required." })
-    .min(6, "PRN must be at least 6 characters.")
-    .max(20, "PRN is too long.")
+    .length(10, "PRN must be exactly 10 characters.")
     .regex(/^\d+$/, "PRN must contain digits only."),
   name: z
     .string({ required_error: "Full name is required." })
