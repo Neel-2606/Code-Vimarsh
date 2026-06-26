@@ -1,4 +1,4 @@
-﻿import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { Github, Linkedin, Crown, Code2, Palette, Settings } from 'lucide-react';
 import { EmbersBackground } from '../components/Achievements/GlowDots';
@@ -220,16 +220,7 @@ const TeamSection: React.FC<{ section: typeof SECTIONS[number]; sectionIndex: nu
     >
 
       {/* Layout: left sidebar | right grid */}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 2,
-          display: 'grid',
-          gridTemplateColumns: 'minmax(200px,260px) 1fr',
-          gap: 48,
-          alignItems: 'start',
-        }}
-      >
+      <div className="relative z-10 flex flex-col md:grid md:grid-cols-[minmax(200px,260px)_1fr] gap-8 md:gap-12 items-start">
         {/* LEFT */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -279,7 +270,7 @@ const TeamSection: React.FC<{ section: typeof SECTIONS[number]; sectionIndex: nu
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
               gap: 14,
             }}
           >
